@@ -14,8 +14,8 @@ Shader "DitheringBoxBlur"
         Pass
         {
             CGPROGRAM
-// Upgrade NOTE: excluded shader from OpenGL ES 2.0 because it uses non-square matrices
-#pragma exclude_renderers gles
+            // Upgrade NOTE: excluded shader from OpenGL ES 2.0 because it uses non-square matrices
+            #pragma exclude_renderers gles
             #pragma vertex vert
             #pragma fragment frag
             // make fog work
@@ -52,7 +52,6 @@ Shader "DitheringBoxBlur"
                 return o;
             }
 
-
             uint rand_xsm32(uint x)
             {
                 x ^= x >> 16;
@@ -71,8 +70,6 @@ Shader "DitheringBoxBlur"
             }
             fixed4 frag (v2f i) : SV_Target
             {
-                // sample the texture
-                // float2 screen
                 float2 screenUV = i.screenPos.xy / i.screenPos.w;
                 fixed4 col = tex2D(_MainTex, i.uv);
                 float rotation = 6.283;
@@ -88,13 +85,6 @@ Shader "DitheringBoxBlur"
                 float gradY = tc.x - bc.x;
                 float2 gradVec = float2(gradX, gradY);
                 gradVec = float2(1,1);
-                // return float4(gracVec,0,0);
-
-
-
-
-
-
 
                 float st = sin(_Time.y * 3);
                 float nst = st * 0.5 + 0.5;
@@ -105,18 +95,21 @@ Shader "DitheringBoxBlur"
                 int subY = floor(subUV.y);
                 
                 float2x2 pattern = {
-                    0.125, 0.375,  // 第一行两个小格子
-                    0.625, 0.875   // 第二行两个小格子
+                    0.125, 0.375, 
+                    0.625, 0.875 
                 };
 
                 float random = frac(sin(dot(gridPos + gradVec, float2(12.9898,78.233))) * 43758.5453);
                 random = gaussian_rand_approx(random * 10);
-                float threshold = pattern[subX][subY] + random; // 小范围随机扰动
+                float threshold = pattern[subX][subY]; 
+                float dither = frac(threshold + random * 0.3);
 
                 // float threshold = pattern[subx][suby];
                 // threshold = frac(threshold + dot(gridPos, float2(12.9898,78.233)) * 43758.5453);
                 
-                float dither = step(threshold, .9 + nst * 0.1);
+                // float dither = step(threshold, .9 + nst * 0.1);
+                
+                // return dither;
                 // return subUV.xyxy;
                 // return dither;
                 
@@ -132,7 +125,6 @@ Shader "DitheringBoxBlur"
                 color += tex2D(_MainTex, screenUV);
 
                 return float4(color * 1/5, 1.0);
-
             }
             ENDCG
         }
