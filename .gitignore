@@ -1,0 +1,13 @@
+[Tl]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Ll]ogs/
+[Pp]ackages/
+
+.vs/
+
+.consulo/
+*.csproj
+*.sln
+*.tmp
