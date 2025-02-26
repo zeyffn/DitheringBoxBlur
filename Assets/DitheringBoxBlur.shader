@@ -86,7 +86,7 @@ Shader "DitheringBoxBlur"
                 float2 gradVec = float2(gradX, gradY);
                 gradVec = float2(1,1);
 
-                float st = sin(_Time.y * 3);
+                float st = sin(_Time.y * 4);
                 float nst = st * 0.5 + 0.5;
                 float2 uv = screenUV * _Tilling;
                 float2 gridPos = floor(uv);
@@ -99,10 +99,21 @@ Shader "DitheringBoxBlur"
                     0.625, 0.875 
                 };
 
+                static const float Bayer4x4[16] = {
+                    0.0,    0.5,    0.125,  0.625,
+                    0.75,   0.25,   0.875,  0.375,
+                    0.1875, 0.6875, 0.0625, 0.5625, 
+                    0.9375, 0.4375, 0.8125, 0.3125
+                };
+                float2 bayerCoord = int2(frac(uv) * 4.0);
+                int index = bayerCoord.y * 4 + bayerCoord.x;
+
                 float random = frac(sin(dot(gridPos + gradVec, float2(12.9898,78.233))) * 43758.5453);
                 random = gaussian_rand_approx(random * 10);
+
                 float threshold = pattern[subX][subY]; 
-                float dither = frac(threshold + random * 0.3);
+                float dither = step(0.4 + nst * 0.1, Bayer4x4[index]);
+                // float dither = frac(threshold + random * 0.3);
 
                 // float threshold = pattern[subx][suby];
                 // threshold = frac(threshold + dot(gridPos, float2(12.9898,78.233)) * 43758.5453);
@@ -112,19 +123,19 @@ Shader "DitheringBoxBlur"
                 // return dither;
                 // return subUV.xyxy;
                 // return dither;
-                
+
                 // float weight = 0;
                 for(int i = 0; i < 4; ++i)
                 {
                     float weight = i / 4.0;
                     float currentAngle = 1.57 * i + rotation;
-                    float jitterRadius = _Radius * (0.8 + dither * 0.4) * 0.01;
+                    float jitterRadius = _Radius * (0.8 + dither * .4) * 0.01;
                     float2 offset = float2(cos(currentAngle + dither), sin(currentAngle + dither)) * jitterRadius;
                     color += tex2D(_MainTex, screenUV + offset * gradVec * (length(gradVec)));
                 }
-                color += tex2D(_MainTex, screenUV);
+                // color += tex2D(_MainTex, screenUV);
 
-                return float4(color * 1/5, 1.0);
+                return float4(color * 1/4, 1.0);
             }
             ENDCG
         }
